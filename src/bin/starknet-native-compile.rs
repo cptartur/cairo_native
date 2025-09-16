@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use cairo_lang_sierra::program::Program;
 use cairo_lang_starknet_classes::compiler_version::VersionId;
 use cairo_lang_starknet_classes::contract_class::ContractClass;
-use cairo_native::executor::AotContractExecutor;
+use cairo_native::executor::{AotContractExecutor, ContractExecutor};
 use clap::Parser;
 
 /// Given a Sierra file (as saved in Starknet's contract tree), extracts the sierra_program from
