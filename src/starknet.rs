@@ -668,7 +668,7 @@ pub(crate) mod handler {
     /// which allows the user to specify the desired implementation to use during the execution.
     #[repr(C)]
     #[derive(Debug)]
-    pub struct StarknetSyscallHandlerCallbacks<'a, T> {
+    pub struct StarknetSyscallHandlerCallbacks<'a, T: ?Sized> {
         self_ptr: &'a mut T,
 
         get_block_hash: extern "C" fn(

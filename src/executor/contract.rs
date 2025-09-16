@@ -143,33 +143,8 @@ impl BuiltinType {
     }
 }
 
-pub trait ContractExecutor {
-    fn new(
-        program: &Program,
-        entry_points: &ContractEntryPoints,
-        sierra_version: VersionId,
-        opt_level: OptLevel,
-        stats: Option<&mut Statistics>,
-    ) -> Result<Self>
-    where
-        Self: Sized;
-
-    fn new_into(
-        program: &Program,
-        entry_points: &ContractEntryPoints,
-        sierra_version: VersionId,
-        output_path: impl Into<PathBuf>,
-        opt_level: OptLevel,
-        stats: Option<&mut Statistics>,
-    ) -> Result<Option<Self>>
-    where
-        Self: Sized;
-
-    fn from_path(path: impl Into<PathBuf>) -> Result<Option<Self>>
-    where
-        Self: Sized;
-
-    fn run<H: StarknetSyscallHandler>(
+pub trait ContractExecutor<H: StarknetSyscallHandler> {
+    fn run(
         &self,
         selector: Felt,
         args: &[Felt],
@@ -179,12 +154,12 @@ pub trait ContractExecutor {
     ) -> Result<ContractExecutionResult>;
 }
 
-impl ContractExecutor for AotContractExecutor {
+impl AotContractExecutor {
     /// Compile and load a program using a temporary shared library.
     ///
     /// When enabled, compilation stats will be saved to the `stats`. The
     /// initial statistics can be build using the default builder.
-    fn new(
+    pub fn new(
         program: &Program,
         entry_points: &ContractEntryPoints,
         sierra_version: VersionId,
@@ -220,7 +195,7 @@ impl ContractExecutor for AotContractExecutor {
     ///
     /// When enabled, compilation stats will be saved to the `stats`. The
     /// initial statistics can be build using the default builder.
-    fn new_into(
+    pub fn new_into(
         program: &Program,
         entry_points: &ContractEntryPoints,
         sierra_version: VersionId,
@@ -412,7 +387,7 @@ impl ContractExecutor for AotContractExecutor {
     /// This function will check for the existence of a lockfile. If found, it'll return `Ok(None)`.
     /// When this happens, the user should wait until the lock is released, then try loading it
     /// again.
-    fn from_path(path: impl Into<PathBuf>) -> Result<Option<Self>> {
+    pub fn from_path(path: impl Into<PathBuf>) -> Result<Option<Self>> {
         let path = path.into();
 
         // Note: Library should load first, otherwise there could theoretically be a race condition.
@@ -440,7 +415,9 @@ impl ContractExecutor for AotContractExecutor {
 
         Ok(Some(executor))
     }
+}
 
+impl<H: StarknetSyscallHandler> ContractExecutor<H> for AotContractExecutor {
     /// Runs the entry point by the given selector.
     ///
     /// - selector: The selector of the entry point to run.
@@ -450,7 +427,7 @@ impl ContractExecutor for AotContractExecutor {
     /// - syscall_handler: The syscall handler implementation to use when executing the contract.
     ///
     /// The entry point gas cost is not deducted from the gas counter.
-    fn run<H: StarknetSyscallHandler>(
+    fn run(
         &self,
         selector: Felt,
         args: &[Felt],

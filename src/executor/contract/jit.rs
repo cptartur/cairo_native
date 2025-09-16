@@ -9,12 +9,12 @@ use cairo_lang_starknet_classes::casm_contract_class::ENTRY_POINT_COST;
 use cairo_lang_starknet_classes::compiler_version::VersionId;
 use cairo_lang_starknet_classes::contract_class::ContractEntryPoints;
 
+use super::{find_entrypoint_builtins, ContractExecutor, EntryPointInfo, NativeContractInfo};
+use crate::starknet::StarknetSyscallHandler;
 use crate::{
     context::NativeContext, error::Result, executor::jit::JitNativeExecutor,
     statistics::Statistics, OptLevel,
 };
-
-use super::{find_entrypoint_builtins, ContractExecutor, EntryPointInfo, NativeContractInfo};
 
 /// JIT-based contract executor that mirrors AOT behavior but keeps everything in-memory.
 #[derive(Debug)]
@@ -23,8 +23,8 @@ pub struct JitContractExecutor {
     contract_info: NativeContractInfo,
 }
 
-impl ContractExecutor for JitContractExecutor {
-    fn new(
+impl JitContractExecutor {
+    pub fn new(
         program: &Program,
         entry_points: &ContractEntryPoints,
         sierra_version: VersionId,
@@ -103,7 +103,7 @@ impl ContractExecutor for JitContractExecutor {
     }
 
     // For JIT, there is no on-disk artifact. Build in-memory and return Some.
-    fn new_into(
+    pub fn new_into(
         program: &Program,
         entry_points: &ContractEntryPoints,
         sierra_version: VersionId,
@@ -113,13 +113,10 @@ impl ContractExecutor for JitContractExecutor {
     ) -> Result<Option<Self>> {
         Self::new(program, entry_points, sierra_version, opt_level, stats).map(Some)
     }
+}
 
-    // JIT executors cannot be loaded from disk; return None to signal to caller.
-    fn from_path(_path: impl Into<std::path::PathBuf>) -> Result<Option<Self>> {
-        Ok(None)
-    }
-
-    fn run<H: crate::starknet::StarknetSyscallHandler>(
+impl<H: StarknetSyscallHandler> ContractExecutor<H> for JitContractExecutor {
+    fn run(
         &self,
         selector: Felt,
         args: &[Felt],
