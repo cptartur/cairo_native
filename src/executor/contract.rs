@@ -31,6 +31,8 @@
 //! When loading, passing the "program.so" path will make it load the program and the "program.json" alongside it.
 //!
 
+pub mod jit;
+
 use crate::{
     arch::AbiArgument,
     clone_option_mut,

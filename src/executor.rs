@@ -4,7 +4,10 @@
 //! of time. It also provides a cache to avoid recompiling previously compiled programs.
 
 pub use self::contract::ContractExecutor;
-pub use self::{aot::AotNativeExecutor, contract::AotContractExecutor, jit::JitNativeExecutor};
+pub use self::{
+    aot::AotNativeExecutor, contract::jit::JitContractExecutor, contract::AotContractExecutor,
+    jit::JitNativeExecutor,
+};
 use crate::{
     arch::{AbiArgument, ValueWithInfoWrapper},
     error::{panic::ToNativeAssertError, Error},
